@@ -1,21 +1,41 @@
 package com.sirzhangs.consumer.remote;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.sirzhangs.common.entity.RequestResult;
 import com.sirzhangs.consumer.entity.User;
-
-@FeignClient(name = "eureka-provider-one")
-public interface UserFeign {
+/**
+ * Ribbon方式 远程调用，并开启熔断
+ * @author sirzh
+ *
+ */
+@Component
+public class UserFeign {
 	
-	@PostMapping(value = "/user/manage/add")
-	RequestResult add(@RequestBody User user);
+	private final static String HOST_URL = "http://EUREKA-PROVIDER-ONE";
 	
-	@GetMapping(value = "/user/manage/findById/{id}")
-	RequestResult findById(@PathVariable("id")String id);
+	@Autowired
+	private RestTemplate restTemplate;
+	
+	@HystrixCommand(fallbackMethod = "addUser")
+	public RequestResult add(User user) {
+		return restTemplate.getForObject(HOST_URL+"/user/manage/add", RequestResult.class,user);
+	};
+	
+	@HystrixCommand(fallbackMethod = "findUserById")
+	public RequestResult findById(String id) {
+		return restTemplate.getForObject(HOST_URL+"/user/manage/findById/{id}", RequestResult.class,id);
+	};
+	
+	public RequestResult addUser(User user) {
+		return RequestResult.fail("addUser采用Robbin熔断");
+	};
+	
+	public RequestResult findUserById(String id) {
+		return RequestResult.fail("findUserById采用Robbin熔断");
+	};
 
 }

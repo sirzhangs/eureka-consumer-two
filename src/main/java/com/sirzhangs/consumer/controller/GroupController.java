@@ -19,6 +19,11 @@ public class GroupController {
 	@Autowired
 	private UserFeign userFeign;
 	
+	/**
+	 * 使用Ribbon中方法调用远程add方法
+	 * @param user
+	 * @return
+	 */
 	@PostMapping("add")
 	public RequestResult add(
 			@RequestBody User user
@@ -26,6 +31,11 @@ public class GroupController {
 		return userFeign.add(user);
 	}
 	
+	/**
+	 * 使用Ribbon中方法调用远程add方法
+	 * @param id
+	 * @return
+	 */
 	@GetMapping("/findById/{id}")
 	public RequestResult findById(
 			@PathVariable("id")String id) {
